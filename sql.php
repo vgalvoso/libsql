@@ -1,13 +1,14 @@
 <?php
 set_time_limit(120);
-include "lib/helper.php";
+
+include "helper.php";
+
 class Sql{
 
     protected $conn;
     protected $db;
     public $error;
     public $query;
-    public $stmt;
     
     /**
      * Connect to database
@@ -23,7 +24,7 @@ class Sql{
      * @author Van
      */
     public function __construct($dbase="default",$server="",$user="",$pass="",$dbname="",$driver=""){
-        include "connect.php";
+        include "database.php";
         if($dbase != null){
             $server = $db[$dbase]["server"];
             $user = $db[$dbase]["user"];
@@ -36,6 +37,7 @@ class Sql{
                 array(PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION));
         }catch(PDOException $e){
             $this->error = $e->getMessage();
+            output($this->error);
         }
     }
 
@@ -45,10 +47,6 @@ class Sql{
 
     public function getError(){
         return $this->error;
-    }
-
-    public function debug(){
-        return $this->stmt->debugDumpParams();
     }
     
     /**
@@ -64,9 +62,9 @@ class Sql{
      */
     public function getItem($query,$inputs=null){
         try{
-            $this->stmt = $this->conn->prepare($query);
-            $this->stmt->execute($inputs);
-            return (object)$this->stmt->fetch(PDO::FETCH_ASSOC);
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($inputs);
+            return $stmt->fetch(PDO::FETCH_OBJ);
         }catch(PDOException $e){
             $this->error = $e->getMessage();
             return false;
@@ -86,9 +84,9 @@ class Sql{
      */
     public function getItems($query,$inputs=null){
         try{
-            $this->stmt = $this->conn->prepare($query);
-            $this->stmt->execute($inputs);
-            return $this->stmt->fetchAll(PDO::FETCH_ASSOC);
+            $stmt = $this->conn->prepare($query);
+            $stmt->execute($inputs);
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
         }catch(PDOException $e){
             $this->error = $e->getMessage();
             return false;
@@ -98,8 +96,8 @@ class Sql{
     //insert/update/delete
     public function exec($query,$inputs=null){
         try{
-            $this->stmt = $this->conn->prepare($query);
-            return $this->stmt->execute($inputs);
+            $stmt = $this->conn->prepare($query);
+            return $stmt->execute($inputs);
         }catch(PDOException $e){
             $this->error = $e->getMessage();
             return false;
